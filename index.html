@@ -372,6 +372,47 @@
             background-color: var(--light-bg);
         }
 
+        /* Validation Warning */
+        .validation-warning {
+            background-color: #FFF3CD;
+            border: 2px solid #FFC107;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .validation-warning-icon {
+            color: #856404;
+            font-size: 24px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .validation-warning-content {
+            flex: 1;
+        }
+
+        .validation-warning-title {
+            color: #856404;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin: 0 0 8px 0;
+        }
+
+        .validation-warning-text {
+            color: #856404;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .validation-warning-missing {
+            font-weight: 600;
+            color: #721c24;
+        }
+
         /* Loading Spinner */
         .loading {
             text-align: center;
@@ -536,7 +577,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 Purdue University Global - Unit Outcomes Extraction Tool | <strong>v2.1.1</strong> - Text Updates</p>
+            <p>&copy; 2025 Purdue University Global - Unit Outcomes Extraction Tool | <strong>v2.2.0</strong> - Unit Validation</p>
         </footer>
     </div>
 
@@ -657,6 +698,29 @@
             return match ? match[1] : 'UNKNOWN';
         }
 
+        // Validate if all expected units have outcomes
+        function validateUnits(outcomes, courseCode, expectedUnits = 10) {
+            const unitsFound = new Set();
+            outcomes
+                .filter(o => o.courseCode === courseCode)
+                .forEach(o => unitsFound.add(parseInt(o.unit)));
+
+            const missingUnits = [];
+            for (let i = 1; i <= expectedUnits; i++) {
+                if (!unitsFound.has(i)) {
+                    missingUnits.push(i);
+                }
+            }
+
+            return {
+                isComplete: missingUnits.length === 0,
+                unitsFound: Array.from(unitsFound).sort((a, b) => a - b),
+                missingUnits: missingUnits,
+                totalFound: unitsFound.size,
+                totalExpected: expectedUnits
+            };
+        }
+
         // Extract outcomes from markdown text
         function extractOutcomes(text, courseCode) {
             const outcomes = [];
@@ -672,10 +736,10 @@
 
                     // Look backwards to find the unit number from the preceding header
                     let unitNumber = 'UNKNOWN';
-                    for (let j = i - 1; j >= Math.max(0, i - 20); j--) {
+                    for (let j = i - 1; j >= Math.max(0, i - 50); j--) {
                         const headerLine = lines[j];
-                        // Look for "Unit X" in headers (with or without markdown #)
-                        const unitMatch = headerLine.match(/#{0,6}\s*Unit\s+(\d+)/i);
+                        // Look for "Unit X" headers at start of line (Overview/Reading/main header)
+                        const unitMatch = headerLine.match(/^\s*#{0,6}\s*\*{0,2}\s*Unit\s+(\d+)\s*(?:Overview|Reading|:)/i);
                         if (unitMatch) {
                             unitNumber = unitMatch[1];
                             console.log(`Found unit number ${unitNumber} in header: "${headerLine.trim()}"`);
@@ -814,19 +878,44 @@
             Object.keys(courseGroups).sort().forEach(courseCode => {
                 const courseOutcomes = courseGroups[courseCode];
 
+                // Validate units for this course
+                const validation = validateUnits(outcomes, courseCode);
+
                 const courseSection = document.createElement('div');
                 courseSection.className = 'course-section';
+
+                // Build warning HTML if units are missing
+                let warningHTML = '';
+                if (!validation.isComplete) {
+                    warningHTML = `
+                        <div class="validation-warning">
+                            <div class="validation-warning-icon">⚠️</div>
+                            <div class="validation-warning-content">
+                                <p class="validation-warning-title">Incomplete Unit Coverage Detected</p>
+                                <p class="validation-warning-text">
+                                    Expected 10 units, but only found ${validation.totalFound} unit${validation.totalFound !== 1 ? 's' : ''} with outcomes.
+                                    <br>
+                                    <span class="validation-warning-missing">Missing units: ${validation.missingUnits.join(', ')}</span>
+                                    <br>
+                                    Please manually verify the source file to ensure all units are present and properly formatted.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
 
                 courseSection.innerHTML = `
                     <div class="course-header" onclick="toggleCourse('${courseCode}')">
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <h3>${courseCode}</h3>
                             <span class="course-count">${courseOutcomes.length} outcomes</span>
+                            ${!validation.isComplete ? '<span style="font-size: 1.2em; margin-left: 5px;">⚠️</span>' : ''}
                         </div>
                         <span class="course-toggle" id="toggle-${courseCode}">▼</span>
                     </div>
                     <div class="course-content" id="content-${courseCode}">
                         <div class="course-table-container">
+                            ${warningHTML}
                             <table class="results-table">
                                 <thead>
                                     <tr>

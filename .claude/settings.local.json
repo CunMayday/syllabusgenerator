@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm install)",
       "Bash(dir:*)",
-      "Bash(del server.js)"
+      "Bash(del server.js)",
+      "Bash(powershell -Command \"Get-Content ''GB730_2601C_Dev_Guide.docx.md'' | Select-Object -Skip 357 -First 1 | ForEach-Object { [System.Text.Encoding]::UTF8.GetBytes($_ | ForEach-Object { ''{0:X2}'' -f $_} }\")",
+      "Bash(node -e:*)",
+      "Bash(node test-parser.js:*)"
     ]
   }
 }

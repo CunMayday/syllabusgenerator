@@ -2,7 +2,7 @@
 
 A web application that extracts unit learning outcomes from course Markdown files and exports them to CSV format. This is a **client-side only** application that runs entirely in your browser - no server required!
 
-**Current Version: 2.1.1** - Text Updates
+**Current Version: 2.2.0** - Unit Validation
 
 ## Features
 
@@ -119,6 +119,28 @@ Tested and working on:
 - No installation or build process required
 
 ## Version History
+
+### v2.2.0 - Unit Validation (2025-01-17)
+**New Features**
+- ✨ Added automatic validation to detect missing units (expects 10 units per course)
+- ✨ Visual warning indicator (⚠️) displayed on course headers with incomplete units
+- ✨ Detailed warning message shows which units are missing
+- ✨ Reminds users to manually verify source files when units are incomplete
+- ✨ Validation runs automatically after processing and displays in collapsible sections
+
+### v2.1.3 - Regex Pattern Fix (2025-01-17)
+**Bug Fixes**
+- 🐛 Fixed regex pattern matching "Unit X" in narrative text instead of headers
+- ✅ Updated pattern to require specific header formats: "Unit X Overview", "Unit X Reading", or "Unit X:"
+- ✅ Prevents false matches in sentences like "explored in Unit 1" from being detected as unit headers
+- ✅ All 10 units in GB730.md now correctly separated (Units 2, 6 were previously merged)
+
+### v2.1.2 - Unit Detection Fix (2025-01-17)
+**Bug Fixes**
+- 🐛 Fixed unit number detection failing when unit headers are >20 lines before trigger phrase
+- ✅ Increased backward search limit from 20 to 50 lines
+- ✅ Resolves issue where Units 1+2 and 5+7 were merged in GB730.md
+- ✅ All 10 units now correctly detected (headers were 23-28 lines away from trigger)
 
 ### v2.1.1 - Text Updates (2025-01-17)
 **Content Corrections**
