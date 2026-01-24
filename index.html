@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -210,6 +211,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -430,8 +432,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .loading p {
@@ -509,18 +516,21 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
-            <h1>Unit Outcomes Extractor</h1>
-            <p class="subtitle">Extract unit learning outcomes from dev guides in .md (markdown) format</p>
+            <h1>Syllabus Generator</h1>
+            <p class="subtitle">Generate a syllabus based on the course dev guide</p>
         </header>
 
         <main>
             <div class="upload-section">
                 <div class="upload-box" id="uploadBox">
-                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                     <h2>Upload Course Markdown Files</h2>
                     <p>Drag and drop your .md files here or click to browse</p>
@@ -537,47 +547,35 @@
 
             <div class="results-section" id="resultsSection" style="display: none;">
                 <div class="results-header">
-                    <h2>Extracted Outcomes</h2>
-                    <div class="results-stats">
-                        <span class="stat">
-                            <strong id="outcomeCount">0</strong> outcomes found
-                        </span>
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button class="btn-primary" id="downloadBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download CSV
-                    </button>
+                    <h2>Generated Syllabi</h2>
                     <button class="btn-secondary" id="resetBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        Process More Files
+                        Start Over
                     </button>
                 </div>
 
-                <div id="courseResults"></div>
+                <div id="syllabusResults"></div>
             </div>
 
             <div class="loading" id="loading" style="display: none;">
                 <div class="spinner"></div>
-                <p>Processing markdown files...</p>
+                <p>Generating syllabi...</p>
             </div>
 
             <div class="error" id="error" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p id="errorMessage"></p>
             </div>
         </main>
 
         <footer>
-            <p>&copy; 2025 Purdue University Global - Unit Outcomes Extraction Tool | <strong>v2.2.0</strong> - Unit Validation</p>
+            <p>&copy; 2025 Purdue University Global - Syllabus Generator | <strong>v3.0.0</strong></p>
         </footer>
     </div>
 
@@ -597,9 +595,6 @@
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
         const errorMessage = document.getElementById('errorMessage');
-        const resultsBody = document.getElementById('resultsBody');
-        const outcomeCount = document.getElementById('outcomeCount');
-        const downloadBtn = document.getElementById('downloadBtn');
         const resetBtn = document.getElementById('resetBtn');
 
         // Event Listeners
@@ -610,7 +605,6 @@
         uploadBox.addEventListener('dragleave', handleDragLeave);
         uploadBox.addEventListener('drop', handleDrop);
         processBtn.addEventListener('click', processFiles);
-        downloadBtn.addEventListener('click', downloadCSV);
         resetBtn.addEventListener('click', reset);
 
         // Handle file selection
@@ -803,6 +797,246 @@
             return outcomes;
         }
 
+        // --- Syllabus Generation Functions ---
+
+        const generateSyllabusBtn = document.getElementById('generateSyllabusBtn');
+        if (generateSyllabusBtn) {
+            generateSyllabusBtn.addEventListener('click', generateSyllabus);
+        }
+
+        async function generateSyllabus() {
+            if (selectedFiles.length === 0) return;
+
+            const file = selectedFiles[0];
+            const text = await extractTextFromMarkdown(file);
+
+            const courseInfo = extractCourseInfo(text);
+            const intro = extractIntroSections(text);
+            const outcomes = extractCourseOutcomes(text);
+            const grading = extractGradebook(text);
+            const unitOutcomes = extractUnitOutcomesForSyllabus(text, courseInfo.code);
+
+            const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes);
+            downloadFile(syllabusMarkdown, `${courseInfo.code}_Syllabus.md`, 'text/markdown');
+        }
+
+        function extractCourseInfo(text) {
+            const lines = text.split('\n');
+            let info = { title: 'Unknown Course', code: 'UNKNOWN' };
+
+            // Look for Course Code and Title
+            for (const line of lines) {
+                const codeMatch = line.match(/\*\*Course Code:\*\*\s*(.+)/i);
+                if (codeMatch) info.code = codeMatch[1].trim();
+
+                const titleMatch = line.match(/\*\*Course Title:\*\*\s*(.+)/i);
+                if (titleMatch) info.title = titleMatch[1].trim();
+            }
+            // Fallback for Title in first line if not found
+            if (info.title === 'Unknown Course' && lines.length > 0) {
+                const titleHeader = lines[0].replace(/^#\s*\*\*/, '').replace(/\*\*$/, '').trim();
+                if (titleHeader) info.title = titleHeader;
+            }
+
+            return info;
+        }
+
+        function extractIntroSections(text) {
+            const sections = {
+                whatLearn: '',
+                howComplete: ''
+            };
+
+            // "What will I learn" extraction
+            // Finding the specific cell content. The dev guide has a "Start Here" table.
+            // We look for "WHAT WILL I LEARN?" and capture the text until the next strong tag or cell end.
+            const whatLearnMatch = text.match(/\*\*WHAT WILL I LEARN\?\*\*\s*([\s\S]*?)(?=\*\*|$|\|)/i);
+            if (whatLearnMatch) {
+                // Cleanup: remove newlines that are just wrapping, keep paragraph breaks
+                sections.whatLearn = whatLearnMatch[1].replace(/\|/g, '').trim();
+            }
+
+            // "HOW WILL I COMPLETE THIS COURSE?"
+            const howCompleteMatch = text.match(/\*\*HOW WILL I COMPLETE THIS COURSE\?\*\*\s*([\s\S]*?)(?=\|)/i);
+            if (howCompleteMatch) {
+                sections.howComplete = howCompleteMatch[1].replace(/\|/g, '').trim();
+            }
+
+            return sections;
+        }
+
+        function extractCourseOutcomes(text) {
+            // Look for table after "CLA mapping for Build ONLY-"
+            const mappingHeaderIndex = text.search(/\*\*CLA mapping for Build ONLY-\*\*/i);
+            if (mappingHeaderIndex === -1) return [];
+
+            const substring = text.substring(mappingHeaderIndex);
+            const lines = substring.split('\n');
+            const outcomes = [];
+
+            let insideTable = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                // Stop at next section (e.g., "### CMS:" or "## ")
+                if (line.startsWith('###') || line.startsWith('## ')) {
+                    break;
+                }
+
+                // Detect table start (header row containing "Unit" and "CLA")
+                if (line.includes('Unit') && line.includes('CLA') && line.startsWith('|')) {
+                    insideTable = true;
+                    continue; // skip header
+                }
+
+                // Skip separator rows (any row with :---- patterns)
+                if (line.includes(':----')) {
+                    continue;
+                }
+
+                if (insideTable) {
+                    // Check if this is a table row
+                    if (line.startsWith('|') && line.length > 5) {
+                        // Split by '|' and get all parts (including empty ones initially)
+                        const rawParts = line.split('|');
+                        // Trim each part
+                        const parts = rawParts.map(p => p.trim());
+
+                        // Find the first non-empty part (this should be the outcome)
+                        let outcomeText = '';
+                        for (let j = 0; j < parts.length; j++) {
+                            if (parts[j].length > 0) {
+                                outcomeText = parts[j];
+                                break;
+                            }
+                        }
+
+                        if (outcomeText.length > 0) {
+                            // Remove ALL ** markers from the text
+                            let cleanedOutcome = outcomeText.replace(/\*\*/g, '');
+
+                            // Check if this looks like a course outcome:
+                            // - Pattern like GB700-1: or GB730-2: (letters, numbers, dash, number, colon)
+                            // - Or PC pattern like PC 6.3: or PC6.3:
+                            if (cleanedOutcome.match(/^[A-Z]{2,}\d+-\d+\s*:/) ||
+                                cleanedOutcome.match(/^PC\s*\d+\.?\d*\s*:/i)) {
+                                outcomes.push(cleanedOutcome.trim());
+                            }
+                        }
+                    } else if (line === '' && outcomes.length > 0) {
+                        // Empty line after finding outcomes = end of table
+                        break;
+                    }
+                }
+            }
+            return outcomes;
+        }
+
+        function extractGradebook(text) {
+            const gradebookItems = [];
+            // Find "CS: List items in the order in which they should be listed in the Gradebook"
+            const headerIndex = text.indexOf("CS: List items in the order in which they should be listed in the Gradebook");
+            if (headerIndex === -1) return [];
+
+            const substring = text.substring(headerIndex);
+            const lines = substring.split('\n');
+            let insideTable = false;
+
+            for (const line of lines) {
+                if (line.includes('| Unit | Item Amount |')) {
+                    insideTable = true;
+                    continue;
+                }
+                if (line.includes(':----')) continue;
+
+                if (insideTable) {
+                    if (!line.startsWith('|')) {
+                        if (gradebookItems.length > 0) break; // End of table
+                        continue;
+                    }
+
+                    const parts = line.split('|').map(p => p.trim());
+                    // Format: | Unit | Item Amount | ...
+                    // parts[0] is empty (split), parts[1] is Name, parts[2] is Points
+                    if (parts.length >= 3) {
+                        const name = parts[1];
+                        const points = parts[2];
+
+                        // Filter out "Unit X" headers, keep only items with points
+                        if (name && points && !name.match(/^\*\*Unit \d+\*\*$/) && points !== '') {
+                            gradebookItems.push({ name, points });
+                        }
+                    }
+                }
+            }
+
+            return gradebookItems;
+        }
+
+        function extractUnitOutcomesForSyllabus(text, courseCode) {
+            const rawOutcomes = extractOutcomes(text, courseCode);
+            // Sort by unit
+            return rawOutcomes.sort((a, b) => {
+                const uA = parseInt(a.unit) || 0;
+                const uB = parseInt(b.unit) || 0;
+                return uA - uB;
+            });
+        }
+
+        function createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes) {
+            let md = `# ${courseInfo.code}: ${courseInfo.title}\n\n`;
+
+            md += `## What Will I Learn?\n\n${intro.whatLearn}\n\n`;
+
+            md += `## How Will I Complete This Course?\n\n${intro.howComplete}\n\n`;
+
+            md += `## Course Outcomes\n\n`;
+            if (outcomes.length > 0) {
+                outcomes.forEach(outcome => {
+                    // Ensure nice formatting if it has "**"
+                    md += `- ${outcome.replace(/\*\*/g, '')}\n`;
+                });
+            } else {
+                md += `*No course outcomes found.*\n`;
+            }
+            md += `\n`;
+
+            md += `## Grading and Assessment\n\n`;
+            md += `| Graded Item | Points |\n|---|---|\n`;
+            let totalPoints = 0;
+            grading.forEach(item => {
+                md += `| ${item.name} | ${item.points} |\n`;
+                const p = parseInt(item.points);
+                if (!isNaN(p)) totalPoints += p;
+            });
+            md += `| **Total** | **${totalPoints}** |\n\n`;
+
+            md += `## Unit Learning Outcomes\n\n`;
+            md += `| Unit | Outcomes |\n|---|---|\n`;
+
+            // Group by unit
+            let currentUnit = null;
+            unitOutcomes.forEach(o => {
+                if (o.unit !== currentUnit) {
+                    md += `| **Unit ${o.unit}** | |\n`;
+                    currentUnit = o.unit;
+                }
+                md += `| | • ${o.outcome} |\n`;
+            });
+
+            return md;
+        }
+
+        function downloadFile(content, filename, contentType) {
+            const a = document.createElement('a');
+            const file = new Blob([content], { type: contentType });
+            a.href = URL.createObjectURL(file);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
         // Convert outcomes to CSV
         function convertToCSV(outcomes) {
             if (outcomes.length === 0) {
@@ -818,6 +1052,148 @@
             return csv;
         }
 
+        // Storage for generated content (avoids issues with special chars in onclick)
+        const generatedContent = {
+            markdown: [],
+            html: []
+        };
+
+        // Create UI Card for each result
+        function createResultCard(filename, courseInfo, markdownContent, htmlContent) {
+            // Store content and get index
+            const idx = generatedContent.markdown.length;
+            generatedContent.markdown.push(markdownContent);
+            generatedContent.html.push(htmlContent);
+
+            const card = document.createElement('div');
+            card.className = 'course-section';
+            card.innerHTML = `
+                <div class="course-header" style="cursor: default;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <h3>${courseInfo.code}: ${courseInfo.title}</h3>
+                        <span class="course-count">Syllabus Generated</span>
+                    </div>
+                </div>
+                <div class="course-table-container" style="text-align: center; padding: 30px;">
+                    <p style="margin-bottom: 20px; color: var(--dark-gray);">Generated from: <strong>${filename}</strong></p>
+                    <div class="actions" style="border: none; margin: 0; padding: 0;">
+                        <button class="btn-primary" onclick="downloadMarkdown(${idx}, '${courseInfo.code}')">
+                            Download Markdown
+                        </button>
+                        <button class="btn-secondary" onclick="viewInNewTab(${idx})">
+                            View in New Tab
+                        </button>
+                    </div>
+                </div>
+            `;
+            const syllabusResults = document.getElementById('syllabusResults');
+            syllabusResults.appendChild(card);
+        }
+
+        function downloadMarkdown(idx, courseCode) {
+            const content = generatedContent.markdown[idx];
+            const a = document.createElement('a');
+            const file = new Blob([content], { type: 'text/markdown' });
+            a.href = URL.createObjectURL(file);
+            a.download = `${courseCode}_Syllabus.md`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function viewInNewTab(idx) {
+            const htmlContent = generatedContent.html[idx];
+            const newTab = window.open('', '_blank');
+            newTab.document.write(htmlContent);
+            newTab.document.close();
+        }
+
+        function createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes) {
+            // Helper to convert markdown bold **text** to HTML <strong>
+            function markdownToHtml(text, addLineBreaksForKeywords = false) {
+                if (!text) return '';
+                let result = text
+                    // Convert **text** to <strong>text</strong>
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+
+                // Add line breaks before activity keywords for "How Will I Complete" section
+                if (addLineBreaksForKeywords) {
+                    result = result
+                        .replace(/(<strong>Reading:<\/strong>)/gi, '<br><br>$1')
+                        .replace(/(<strong>Discussion:<\/strong>)/gi, '<br><br>$1')
+                        .replace(/(<strong>Assignment:<\/strong>)/gi, '<br><br>$1')
+                        .replace(/(<strong>Seminar:<\/strong>)/gi, '<br><br>$1')
+                        .replace(/(<strong>Quiz:<\/strong>)/gi, '<br><br>$1');
+                }
+                return result;
+            }
+
+            // Group unit outcomes by unit number
+            const groupedOutcomes = {};
+            unitOutcomes.forEach(o => {
+                if (!groupedOutcomes[o.unit]) {
+                    groupedOutcomes[o.unit] = [];
+                }
+                groupedOutcomes[o.unit].push(o.outcome);
+            });
+
+            // Build unit outcomes HTML
+            let unitOutcomesHtml = '';
+            Object.keys(groupedOutcomes).sort((a, b) => parseInt(a) - parseInt(b)).forEach(unit => {
+                unitOutcomesHtml += `<h3>Unit ${unit}</h3><ul>`;
+                groupedOutcomes[unit].forEach(outcome => {
+                    unitOutcomesHtml += `<li>${outcome}</li>`;
+                });
+                unitOutcomesHtml += `</ul>`;
+            });
+
+            return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${courseInfo.code} Syllabus</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 40px; }
+                    h1 { color: #C28E0E; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    h2 { color: #373A36; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                    h3 { color: #555; margin-top: 20px; margin-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                    th { background-color: #f8f8f8; font-weight: bold; }
+                    ul { margin-left: 20px; margin-bottom: 15px; }
+                    @media print {
+                        body { padding: 20px; }
+                        h2 { page-break-after: avoid; }
+                        h3 { page-break-after: avoid; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>${courseInfo.code}: ${courseInfo.title}</h1>
+                
+                <h2>What Will I Learn?</h2>
+                <p>${markdownToHtml(intro.whatLearn)}</p>
+                
+                <h2>How Will I Complete This Course?</h2>
+                <p>${markdownToHtml(intro.howComplete, true)}</p>
+                
+                <h2>Course Outcomes</h2>
+                <ul>${outcomes.length > 0 ? outcomes.map(o => `<li>${o.replace(/\*\*/g, '')}</li>`).join('') : '<li>No course outcomes found.</li>'}</ul>
+                
+                <h2>Grading and Assessment</h2>
+                <table>
+                    <tr><th>Graded Item</th><th>Points</th></tr>
+                    ${grading.map(i => `<tr><td>${i.name}</td><td>${i.points}</td></tr>`).join('')}
+                    <tr><td><strong>Total</strong></td><td><strong>${grading.reduce((a, b) => a + (parseInt(b.points) || 0), 0)}</strong></td></tr>
+                </table>
+                
+                <h2>Unit Learning Outcomes</h2>
+                ${unitOutcomesHtml || '<p>No unit outcomes found.</p>'}
+            </body>
+            </html>
+            `;
+        }
+
         // Process the markdown files
         async function processFiles() {
             if (selectedFiles.length === 0) return;
@@ -827,40 +1203,53 @@
 
             // Show loading
             loading.style.display = 'block';
+
+            // HIDE UPLOAD SECTION
             document.querySelector('.upload-section').style.display = 'none';
 
-            try {
-                let allOutcomes = [];
+            // Clear previous results
+            document.getElementById('syllabusResults').innerHTML = '';
+            generatedContent.markdown = [];
+            generatedContent.html = [];
 
+            try {
                 // Process each Markdown file
                 for (const file of selectedFiles) {
                     const text = await extractTextFromMarkdown(file);
-                    const courseCode = extractCourseCode(text);
-                    const outcomes = extractOutcomes(text, courseCode);
-                    allOutcomes = allOutcomes.concat(outcomes);
-                }
 
-                // Generate CSV
-                const csv = convertToCSV(allOutcomes);
+                    // Extract all needed data
+                    const courseInfo = extractCourseInfo(text);
+                    const intro = extractIntroSections(text);
+                    const outcomes = extractCourseOutcomes(text);
+                    const grading = extractGradebook(text);
+                    const unitOutcomes = extractUnitOutcomesForSyllabus(text, courseInfo.code);
+
+                    // Generate syllabus content
+                    const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes);
+                    const syllabusHtml = createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes);
+
+                    // Create the result card with download buttons
+                    createResultCard(file.name, courseInfo, syllabusMarkdown, syllabusHtml);
+                }
 
                 // Hide loading
                 loading.style.display = 'none';
 
-                // Display results
-                displayResults(allOutcomes, csv);
+                // Show results section
+                resultsSection.style.display = 'block';
 
             } catch (err) {
                 loading.style.display = 'none';
                 showError(err.message || 'An error occurred while processing the files');
+                console.error(err);
+                // If error, show upload section again
+                document.querySelector('.upload-section').style.display = 'block';
             }
         }
 
         // Display results
         function displayResults(outcomes, csv) {
             csvData = csv;
-
-            // Update count
-            outcomeCount.textContent = outcomes.length;
 
             // Group outcomes by course code
             const courseGroups = {};
@@ -990,4 +1379,5 @@
         }
     </script>
 </body>
+
 </html>
