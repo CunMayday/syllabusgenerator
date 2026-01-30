@@ -82,7 +82,7 @@
         .upload-box {
             border: 3px dashed var(--gray);
             border-radius: 12px;
-            padding: 60px 40px;
+            padding: 28px 24px;
             transition: all 0.3s ease;
             cursor: pointer;
             background-color: var(--light-bg);
@@ -100,8 +100,8 @@
         }
 
         .upload-icon {
-            width: 80px;
-            height: 80px;
+            width: 56px;
+            height: 56px;
             color: var(--campus-gold);
             margin-bottom: 20px;
         }
@@ -116,6 +116,27 @@
             color: var(--gray);
             margin-bottom: 20px;
             font-size: 1.1em;
+        }
+
+        .upload-box.secondary {
+            margin-top: 25px;
+        }
+
+        .standard-language-option {
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--dark-gray);
+            font-weight: 600;
+        }
+
+        .standard-language-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--campus-gold);
+            cursor: pointer;
         }
 
         /* File List */
@@ -177,6 +198,14 @@
             background-color: #A67700;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(194, 142, 14, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.7;
         }
 
         .btn-secondary {
@@ -486,7 +515,7 @@
             }
 
             .upload-box {
-                padding: 40px 20px;
+                padding: 22px 18px;
             }
 
             .results-header {
@@ -540,7 +569,26 @@
 
                 <div class="file-list" id="fileList"></div>
 
-                <button class="btn-primary btn-large" id="processBtn" style="display: none;">
+                <label class="standard-language-option" for="includeStandardLanguage">
+                    <input type="checkbox" id="includeStandardLanguage">
+                    Add standard syllabus language to the end of the document
+                </label>
+
+                <div class="upload-box secondary" id="standardUploadBox" style="display: none;">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <h2>Upload Standard Syllabus Language</h2>
+                    <p>Upload a single .md file to append</p>
+                    <input type="file" id="standardFileInput" accept=".md,.markdown" hidden>
+                    <button class="btn-primary" id="standardBrowseBtn">Browse File</button>
+                </div>
+
+                <div class="file-list" id="standardFileList" style="display: none;"></div>
+
+                <button class="btn-primary btn-large" id="processBtn" disabled>
                     Process Files
                 </button>
             </div>
@@ -584,6 +632,7 @@
         // Global variables
         let selectedFiles = [];
         let csvData = '';
+        let standardLanguageFile = null;
 
         // DOM Elements
         const fileInput = document.getElementById('fileInput');
@@ -596,6 +645,11 @@
         const error = document.getElementById('error');
         const errorMessage = document.getElementById('errorMessage');
         const resetBtn = document.getElementById('resetBtn');
+        const includeStandardLanguage = document.getElementById('includeStandardLanguage');
+        const standardUploadBox = document.getElementById('standardUploadBox');
+        const standardFileInput = document.getElementById('standardFileInput');
+        const standardBrowseBtn = document.getElementById('standardBrowseBtn');
+        const standardFileList = document.getElementById('standardFileList');
 
         // Event Listeners
         browseBtn.addEventListener('click', () => fileInput.click());
@@ -604,6 +658,13 @@
         uploadBox.addEventListener('dragover', handleDragOver);
         uploadBox.addEventListener('dragleave', handleDragLeave);
         uploadBox.addEventListener('drop', handleDrop);
+        includeStandardLanguage.addEventListener('change', toggleStandardLanguageUpload);
+        standardBrowseBtn.addEventListener('click', () => standardFileInput.click());
+        standardFileInput.addEventListener('change', handleStandardFileSelect);
+        standardUploadBox.addEventListener('click', () => standardFileInput.click());
+        standardUploadBox.addEventListener('dragover', handleStandardDragOver);
+        standardUploadBox.addEventListener('dragleave', handleStandardDragLeave);
+        standardUploadBox.addEventListener('drop', handleStandardDrop);
         processBtn.addEventListener('click', processFiles);
         resetBtn.addEventListener('click', reset);
 
@@ -633,6 +694,55 @@
                 file.name.endsWith('.md') || file.name.endsWith('.markdown')
             );
             addFiles(files);
+        }
+
+        function toggleStandardLanguageUpload() {
+            if (includeStandardLanguage.checked) {
+                standardUploadBox.style.display = 'block';
+                standardFileList.style.display = 'block';
+            } else {
+                standardUploadBox.style.display = 'none';
+                standardFileList.style.display = 'none';
+                standardLanguageFile = null;
+                standardFileInput.value = '';
+                updateStandardFileList();
+            }
+            updateProcessButton();
+        }
+
+        function handleStandardFileSelect(e) {
+            const file = e.target.files[0];
+            setStandardFile(file);
+        }
+
+        function handleStandardDragOver(e) {
+            e.preventDefault();
+            standardUploadBox.classList.add('dragover');
+        }
+
+        function handleStandardDragLeave(e) {
+            e.preventDefault();
+            standardUploadBox.classList.remove('dragover');
+        }
+
+        function handleStandardDrop(e) {
+            e.preventDefault();
+            standardUploadBox.classList.remove('dragover');
+            const file = Array.from(e.dataTransfer.files).find(f =>
+                f.name.endsWith('.md') || f.name.endsWith('.markdown')
+            );
+            setStandardFile(file || null);
+        }
+
+        function setStandardFile(file) {
+            if (file && (file.name.endsWith('.md') || file.name.endsWith('.markdown'))) {
+                standardLanguageFile = file;
+            } else {
+                standardLanguageFile = null;
+                standardFileInput.value = '';
+            }
+            updateStandardFileList();
+            updateProcessButton();
         }
 
         // Add files to the list
@@ -669,6 +779,29 @@
             });
         }
 
+        function updateStandardFileList() {
+            if (!standardLanguageFile) {
+                standardFileList.innerHTML = '';
+                return;
+            }
+
+            standardFileList.innerHTML = '<h3 style="color: var(--dark-gray); margin-bottom: 15px;">Standard Language File:</h3>';
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <span class="file-name">${standardLanguageFile.name}</span>
+                <button class="file-remove" onclick="clearStandardFile()">&times;</button>
+            `;
+            standardFileList.appendChild(fileItem);
+        }
+
+        function clearStandardFile() {
+            standardLanguageFile = null;
+            standardFileInput.value = '';
+            updateStandardFileList();
+            updateProcessButton();
+        }
+
         // Remove a file from the list
         function removeFile(index) {
             selectedFiles.splice(index, 1);
@@ -678,7 +811,10 @@
 
         // Update process button visibility
         function updateProcessButton() {
-            processBtn.style.display = selectedFiles.length > 0 ? 'inline-flex' : 'none';
+            const needsStandard = includeStandardLanguage.checked;
+            const hasStandard = !needsStandard || !!standardLanguageFile;
+            processBtn.style.display = 'inline-flex';
+            processBtn.disabled = !(selectedFiles.length > 0 && hasStandard);
         }
 
         // Extract text from Markdown file
@@ -807,6 +943,15 @@
         async function generateSyllabus() {
             if (selectedFiles.length === 0) return;
 
+            let standardLanguage = '';
+            if (includeStandardLanguage.checked) {
+                if (!standardLanguageFile) {
+                    showError('Please upload the standard syllabus language .md file before generating.');
+                    return;
+                }
+                standardLanguage = sanitizeStandardLanguage(await extractTextFromMarkdown(standardLanguageFile));
+            }
+
             const file = selectedFiles[0];
             const text = await extractTextFromMarkdown(file);
 
@@ -816,7 +961,7 @@
             const grading = extractGradebook(text);
             const unitOutcomes = extractUnitOutcomesForSyllabus(text, courseInfo.code);
 
-            const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes);
+            const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage);
             downloadFile(syllabusMarkdown, `${courseInfo.code}_Syllabus.md`, 'text/markdown');
         }
 
@@ -984,7 +1129,7 @@
             });
         }
 
-        function createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes) {
+        function createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage) {
             let md = `# ${courseInfo.code}: ${courseInfo.title}\n\n`;
 
             md += `## What Will I Learn?\n\n${intro.whatLearn}\n\n`;
@@ -1024,6 +1169,10 @@
                 }
                 md += `| | • ${o.outcome} |\n`;
             });
+
+            if (standardLanguage && standardLanguage.trim()) {
+                md += `\n---\n\n${standardLanguage.trim()}\n`;
+            }
 
             return md;
         }
@@ -1107,11 +1256,18 @@
             newTab.document.close();
         }
 
-        function createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes) {
+        function createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage) {
             // Helper to convert markdown bold **text** to HTML <strong>
             function markdownToHtml(text, addLineBreaksForKeywords = false) {
                 if (!text) return '';
                 let result = text
+                    // Convert headings
+                    .replace(/^######\s+(.+)$/gm, '<h6>$1</h6>')
+                    .replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>')
+                    .replace(/^####\s+(.+)$/gm, '<h4>$1</h4>')
+                    .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>')
+                    .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>')
+                    .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>')
                     // Convert **text** to <strong>text</strong>
                     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
                     .replace(/\n/g, '<br>');
@@ -1146,6 +1302,10 @@
                 });
                 unitOutcomesHtml += `</ul>`;
             });
+
+            const standardLanguageHtml = standardLanguage && standardLanguage.trim()
+                ? `<h2>Standard Syllabus Language</h2><div>${markdownToHtml(standardLanguage)}</div>`
+                : '';
 
             return `
             <!DOCTYPE html>
@@ -1189,9 +1349,32 @@
                 
                 <h2>Unit Learning Outcomes</h2>
                 ${unitOutcomesHtml || '<p>No unit outcomes found.</p>'}
+
+                ${standardLanguageHtml}
             </body>
             </html>
             `;
+        }
+
+        function sanitizeStandardLanguage(text) {
+            const lines = text.split(/\r?\n/);
+            const cleaned = lines.map((line, idx) => {
+                const headingMatch = line.match(/^(#{2,6})\s+(.*)$/);
+                if (!headingMatch) return line;
+
+                const prevLine = idx > 0 ? lines[idx - 1] : '';
+                const prevTrim = prevLine.trim();
+                const hasPrev = prevTrim.length > 0;
+                const prevEndsSentence = /[.!?;:]$/.test(prevTrim);
+
+                if (hasPrev && !prevEndsSentence) {
+                    return headingMatch[2];
+                }
+
+                return line;
+            });
+
+            return cleaned.join('\n');
         }
 
         // Process the markdown files
@@ -1213,6 +1396,14 @@
             generatedContent.html = [];
 
             try {
+                let standardLanguage = '';
+                if (includeStandardLanguage.checked) {
+                    if (!standardLanguageFile) {
+                        throw new Error('Please upload the standard syllabus language .md file before processing.');
+                    }
+                    standardLanguage = sanitizeStandardLanguage(await extractTextFromMarkdown(standardLanguageFile));
+                }
+
                 // Process each Markdown file
                 for (const file of selectedFiles) {
                     const text = await extractTextFromMarkdown(file);
@@ -1225,8 +1416,8 @@
                     const unitOutcomes = extractUnitOutcomesForSyllabus(text, courseInfo.code);
 
                     // Generate syllabus content
-                    const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes);
-                    const syllabusHtml = createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes);
+                    const syllabusMarkdown = createSyllabusMarkdown(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage);
+                    const syllabusHtml = createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage);
 
                     // Create the result card with download buttons
                     createResultCard(file.name, courseInfo, syllabusMarkdown, syllabusHtml);
@@ -1368,8 +1559,24 @@
             resultsSection.style.display = 'none';
             document.querySelector('.upload-section').style.display = 'block';
             error.style.display = 'none';
+            includeStandardLanguage.checked = false;
+            standardLanguageFile = null;
+            standardFileInput.value = '';
+            standardUploadBox.style.display = 'none';
+            standardFileList.style.display = 'none';
+            updateStandardFileList();
             updateProcessButton();
         }
+
+        function initFormState() {
+            includeStandardLanguage.checked = false;
+            standardLanguageFile = null;
+            standardFileInput.value = '';
+            toggleStandardLanguageUpload();
+            updateProcessButton();
+        }
+
+        initFormState();
 
         // Show error message
         function showError(message) {

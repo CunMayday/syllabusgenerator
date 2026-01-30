@@ -16,12 +16,14 @@ A web-based tool for generating course syllabi from Development Guide markdown f
 - **Multiple Export Options**:
   - Download as Markdown (.md)
   - View in new tab (can print/save as PDF)
+- **Optional Standard Language**: Append a user-provided standard syllabus language .md file to each generated syllabus
 
 ## Usage
 
 1. Open `index.html` in a web browser
 2. Upload one or more Development Guide markdown files
-3. Click "Process Files" to generate syllabi
+3. (Optional) Check "Add standard syllabus language" and upload the standard language .md file
+4. Click "Process Files" to generate syllabi
 4. Use the download buttons to get your syllabus in desired format
 
 ## File Structure
