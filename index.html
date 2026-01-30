@@ -543,7 +543,11 @@
                 padding: 10px 8px;
             }
         }
+    <style>
+        /* ... existing styles ... */
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 </head>
 
 <body>
@@ -1204,15 +1208,17 @@
         // Storage for generated content (avoids issues with special chars in onclick)
         const generatedContent = {
             markdown: [],
-            html: []
+            html: [],
+            data: []
         };
 
         // Create UI Card for each result
-        function createResultCard(filename, courseInfo, markdownContent, htmlContent) {
+        function createResultCard(filename, courseInfo, markdownContent, htmlContent, data) {
             // Store content and get index
             const idx = generatedContent.markdown.length;
             generatedContent.markdown.push(markdownContent);
             generatedContent.html.push(htmlContent);
+            generatedContent.data.push(data);
 
             const card = document.createElement('div');
             card.className = 'course-section';
@@ -1228,6 +1234,9 @@
                     <div class="actions" style="border: none; margin: 0; padding: 0;">
                         <button class="btn-primary" onclick="downloadMarkdown(${idx}, '${courseInfo.code}')">
                             Download Markdown
+                        </button>
+                        <button class="btn-primary" onclick="downloadPdf(${idx})">
+                            Download PDF
                         </button>
                         <button class="btn-secondary" onclick="viewInNewTab(${idx})">
                             View in New Tab
@@ -1247,6 +1256,187 @@
             a.download = `${courseCode}_Syllabus.md`;
             a.click();
             URL.revokeObjectURL(a.href);
+        }
+
+        function downloadPdf(idx) {
+            const data = generatedContent.data[idx];
+            if (!data) return;
+
+            try {
+                const docDefinition = generatePdfDefinition(data);
+                pdfMake.createPdf(docDefinition).download(`${data.courseInfo.code}_Syllabus.pdf`);
+            } catch (e) {
+                console.error('Error generating PDF:', e);
+                alert('Error generating PDF. See console for details.');
+            }
+        }
+
+        function parseSimpleMarkdown(text) {
+            if (!text) return [];
+            
+            // Split by double newlines to get paragraphs
+            const paragraphs = text.split(/\n\n+/);
+            const content = [];
+
+            paragraphs.forEach(para => {
+                const trimmed = para.trim();
+                if (!trimmed) return;
+
+                // Headers
+                if (trimmed.startsWith('#')) {
+                    const level = trimmed.match(/^#+/)[0].length;
+                    const cleanText = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, ''); // Remove bold markers from headers
+                    
+                    let style = 'body';
+                    if (level === 1) style = 'header1';
+                    else if (level === 2) style = 'header2';
+                    else if (level === 3) style = 'header3';
+                    else style = 'header3'; // fallback
+
+                    content.push({ text: cleanText, style: style, margin: [0, 10, 0, 5] });
+                    return;
+                }
+
+                // Lists
+                if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+                    const items = trimmed.split(/\n/).map(line => {
+                        const lineText = line.replace(/^[-*•]\s+/, '');
+                        return parseInlineFormatting(lineText);
+                    });
+                    content.push({ ul: items, margin: [0, 5, 0, 10] });
+                    return;
+                }
+
+                // Normal paragraph with inline formatting
+                content.push({ text: parseInlineFormatting(trimmed), margin: [0, 0, 0, 10] });
+            });
+
+            return content;
+        }
+
+        function parseInlineFormatting(text) {
+            // Split by ** to find bold parts
+            const parts = text.split(/(\*\*[^*]+\*\*)/g);
+            return parts.map(part => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return { text: part.slice(2, -2), bold: true };
+                }
+                return part;
+            });
+        }
+
+        function generatePdfDefinition(data) {
+            const { courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage } = data;
+
+            const docDefinition = {
+                content: [
+                    // Title
+                    { text: `${courseInfo.code}: ${courseInfo.title}`, style: 'title' },
+                    
+                    // What Will I Learn
+                    { text: 'What Will I Learn?', style: 'header2' },
+                    ...parseSimpleMarkdown(intro.whatLearn),
+
+                    // How Will I Complete
+                    { text: 'How Will I Complete This Course?', style: 'header2' },
+                    ...parseSimpleMarkdown(intro.howComplete),
+
+                    // Course Outcomes
+                    { text: 'Course Outcomes', style: 'header2' },
+                ],
+                styles: {
+                    title: { fontSize: 24, bold: true, color: '#C28E0E', margin: [0, 0, 0, 20] },
+                    header1: { fontSize: 18, bold: true, color: '#373A36', margin: [0, 15, 0, 10] },
+                    header2: { fontSize: 16, bold: true, color: '#373A36', margin: [0, 15, 0, 10] },
+                    header3: { fontSize: 14, bold: true, color: '#555555', margin: [0, 10, 0, 5] },
+                    tableHeader: { bold: true, fontSize: 12, color: 'black', fillColor: '#eeeeee' },
+                    unitHeader: { bold: true, color: '#C28E0E' }
+                },
+                defaultStyle: {
+                    fontSize: 11,
+                    lineHeight: 1.2
+                }
+            };
+
+            // Add Course Outcomes
+            if (outcomes && outcomes.length > 0) {
+                const outcomeList = outcomes.map(o => parseInlineFormatting(o.replace(/^\*\*\s*/, '').replace(/\*\*$/, '')));
+                docDefinition.content.push({ ul: outcomeList, margin: [0, 0, 0, 10] });
+            } else {
+                docDefinition.content.push({ text: 'No course outcomes found.', italics: true });
+            }
+
+            // Grading Table
+            docDefinition.content.push({ text: 'Grading and Assessment', style: 'header2' });
+            
+            const gradingBody = [
+                [{ text: 'Graded Item', style: 'tableHeader' }, { text: 'Points', style: 'tableHeader' }]
+            ];
+            
+            let totalPoints = 0;
+            grading.forEach(item => {
+                gradingBody.push([item.name, item.points]);
+                const p = parseInt(item.points);
+                if (!isNaN(p)) totalPoints += p;
+            });
+            gradingBody.push([{ text: 'Total', bold: true }, { text: totalPoints.toString(), bold: true }]);
+
+            docDefinition.content.push({
+                table: {
+                    headerRows: 1,
+                    widths: ['*', 'auto'],
+                    body: gradingBody
+                },
+                margin: [0, 5, 0, 15]
+            });
+
+            // Unit Outcomes Table
+            docDefinition.content.push({ text: 'Unit Learning Outcomes', style: 'header2' });
+            
+            const unitBody = [
+                [{ text: 'Unit', style: 'tableHeader' }, { text: 'Outcomes', style: 'tableHeader' }]
+            ];
+
+            // Group by unit
+            const groupedOutcomes = {};
+            unitOutcomes.forEach(o => {
+                if (!groupedOutcomes[o.unit]) groupedOutcomes[o.unit] = [];
+                groupedOutcomes[o.unit].push(o.outcome);
+            });
+
+            Object.keys(groupedOutcomes).sort((a, b) => parseInt(a) - parseInt(b)).forEach(unit => {
+                const outcomesList = groupedOutcomes[unit];
+                // Create a bulleted list for the outcomes in this unit
+                const ul = { ul: outcomesList, margin: [0, 2, 0, 2] };
+                
+                unitBody.push([
+                    { text: `Unit ${unit}`, bold: true, color: '#C28E0E' },
+                    ul
+                ]);
+            });
+
+            if (Object.keys(groupedOutcomes).length === 0) {
+                 docDefinition.content.push({ text: 'No unit outcomes found.', italics: true });
+            } else {
+                docDefinition.content.push({
+                    table: {
+                        headerRows: 1,
+                        widths: ['auto', '*'],
+                        body: unitBody
+                    },
+                    margin: [0, 5, 0, 15]
+                });
+            }
+
+            // Standard Language
+            if (standardLanguage && standardLanguage.trim()) {
+                 docDefinition.content.push({ text: '', pageBreak: 'before' }); // Optional page break? Or separator
+                 docDefinition.content.push({ canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1 }] });
+                 docDefinition.content.push({ text: 'Standard Syllabus Language', style: 'header2', margin: [0, 20, 0, 10] });
+                 docDefinition.content.push(...parseSimpleMarkdown(standardLanguage));
+            }
+
+            return docDefinition;
         }
 
         function viewInNewTab(idx) {
@@ -1394,6 +1584,7 @@
             document.getElementById('syllabusResults').innerHTML = '';
             generatedContent.markdown = [];
             generatedContent.html = [];
+            generatedContent.data = [];
 
             try {
                 let standardLanguage = '';
@@ -1420,7 +1611,8 @@
                     const syllabusHtml = createSyllabusHtml(courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage);
 
                     // Create the result card with download buttons
-                    createResultCard(file.name, courseInfo, syllabusMarkdown, syllabusHtml);
+                    const data = { courseInfo, intro, outcomes, grading, unitOutcomes, standardLanguage };
+                    createResultCard(file.name, courseInfo, syllabusMarkdown, syllabusHtml, data);
                 }
 
                 // Hide loading
