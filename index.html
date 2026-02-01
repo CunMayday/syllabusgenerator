@@ -1004,15 +1004,17 @@
 
             // "What will I learn" extraction
             // Finding the specific cell content. The dev guide has a "Start Here" table.
-            // We look for "WHAT WILL I LEARN?" and capture the text until the next strong tag or cell end.
-            const whatLearnMatch = text.match(/\*\*WHAT WILL I LEARN\?\*\*\s*([\s\S]*?)(?=\*\*|$|\|)/i);
+            // We look for "WHAT WILL I LEARN?" and capture the text until the next specific header or cell end.
+            // Updated regex: stop at "**HOW WILL I COMPLETE" or "|" or end of string, but NOT just any "**"
+            const whatLearnMatch = text.match(/\*\*WHAT WILL I LEARN\?\*\*\s*([\s\S]*?)(?=\*\*HOW WILL I COMPLETE|\||$)/i);
             if (whatLearnMatch) {
                 // Cleanup: remove newlines that are just wrapping, keep paragraph breaks
                 sections.whatLearn = whatLearnMatch[1].replace(/\|/g, '').trim();
             }
 
             // "HOW WILL I COMPLETE THIS COURSE?"
-            const howCompleteMatch = text.match(/\*\*HOW WILL I COMPLETE THIS COURSE\?\*\*\s*([\s\S]*?)(?=\|)/i);
+            // Updated regex: stop at "|" or end of string (removed generic ** stop to be safe, though less critical here)
+            const howCompleteMatch = text.match(/\*\*HOW WILL I COMPLETE THIS COURSE\?\*\*\s*([\s\S]*?)(?=\||$)/i);
             if (howCompleteMatch) {
                 sections.howComplete = howCompleteMatch[1].replace(/\|/g, '').trim();
             }
