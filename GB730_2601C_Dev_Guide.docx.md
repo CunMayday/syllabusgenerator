@@ -1,4 +1,4 @@
-# **GB730: Opportunities in a Global Economy** 
+# **GB730: Opportunities in a Global Economy ** 
 
 Development Guide 
 

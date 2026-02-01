@@ -1,4 +1,4 @@
-# **GB601: MBA Capstone** 
+# **GB601: MBA Capstone ** 
 
 Development Guide 
 
