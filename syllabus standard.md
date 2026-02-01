@@ -4,13 +4,13 @@
 
 **Grade Points Percent Grade Point**
 
-A 900 - 1000 90 - 100% 4.
+A 900 - 1000 90 - 100%  
 
-B 800 - 899 80 - 89.99% 3.
+B 800 - 899 80 - 89.99%  
 
-C 700 - 799 70 - 79.99% 2.
+C 700 - 799 70 - 79.99%  
 
-F 0 - 699 Below 70% 0.
+F 0 - 699 Below 70%  
 
 ## INSTRUCTOR’S GRADING CRITERIA/TIMETABLE
 
