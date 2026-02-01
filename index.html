@@ -975,8 +975,14 @@
 
             // Look for Course Code and Title
             for (const line of lines) {
-                const codeMatch = line.match(/\*\*Course Code:\*\*\s*(.+)/i);
-                if (codeMatch) info.code = codeMatch[1].trim();
+                // Match both "**Course Code:** MM710" and "**Course Code: MM710**"
+                // Also handles optional space after colon
+                const codeMatch = line.match(/\*\*Course Code:?\**\s*(.+?)(?:\*\*|$)/i);
+                if (codeMatch) {
+                    // Clean up any trailing ** that might have been captured if the regex got greedy or structure was odd
+                    let code = codeMatch[1].replace(/\*\*$/, '').trim();
+                    if (code) info.code = code;
+                }
 
                 const titleMatch = line.match(/\*\*Course Title:\*\*\s*(.+)/i);
                 if (titleMatch) info.title = titleMatch[1].trim();
@@ -1068,8 +1074,9 @@
                             // Check if this looks like a course outcome:
                             // - Pattern like GB700-1: or GB730-2: (letters, numbers, dash, number, colon)
                             // - Or PC pattern like PC 6.3: or PC6.3:
-                            if (cleanedOutcome.match(/^[A-Z]{2,}\d+-\d+\s*:/) ||
-                                cleanedOutcome.match(/^PC\s*\d+\.?\d*\s*:/i)) {
+                            // - Updated to make colon optional (match space or colon separator)
+                            if (cleanedOutcome.match(/^[A-Z]{2,}\d+-\d+(\s*:|\s+)/) ||
+                                cleanedOutcome.match(/^PC\s*\d+\.?\d*(\s*:|\s+)/i)) {
                                 outcomes.push(cleanedOutcome.trim());
                             }
                         }
