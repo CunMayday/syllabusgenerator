@@ -1093,16 +1093,24 @@
 
         function extractGradebook(text) {
             const gradebookItems = [];
-            // Find "CS: List items in the order in which they should be listed in the Gradebook"
-            const headerIndex = text.indexOf("CS: List items in the order in which they should be listed in the Gradebook");
-            if (headerIndex === -1) return [];
+            
+            // 1. Try standard "CS:" instruction
+            let match = text.match(/CS:\s*List items in the order in which they should be listed in the gradebook/i);
+            
+            // 2. Fallback: Look for "Gradebook Setup" header
+            if (!match) {
+                match = text.match(/\*\*Grade\s*book\s*Setup\*\*/i);
+            }
+            
+            if (!match) return [];
 
-            const substring = text.substring(headerIndex);
+            const substring = text.substring(match.index);
             const lines = substring.split('\n');
             let insideTable = false;
 
             for (const line of lines) {
-                if (line.includes('| Unit | Item Amount |')) {
+                // Flexible header check: Matches "| Unit | Item Amount |" OR "| Unit 1 | Item Amount |"
+                if (line.match(/\|\s*Unit(?:\s*\d+)?\s*\|\s*Item Amount\s*\|/i)) {
                     insideTable = true;
                     continue;
                 }
